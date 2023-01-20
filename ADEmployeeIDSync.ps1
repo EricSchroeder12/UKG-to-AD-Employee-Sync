@@ -1,6 +1,7 @@
 ﻿##AD and UKG ID sync
 ## Created by Eric Schroeder and Jarred Hall
 ##9/8/2022
+##updated 1.20.2023
 
 
 ## Encrypt SQL Login User Password and set variables
@@ -16,9 +17,9 @@ import-module activedirectory
 $users = import-csv "c:\Temp\EmployeeUpload.csv"
 ForEach ($user in $users) {
     try {
-        Get-aduser -identity $user.userName | set-aduser -EmployeeID $user.timeclockID -EmployeeNumber $user.employeeNumber
+        Get-aduser -identity $user.userName | set-aduser -EmployeeID $user.timeclockID -EmployeeNumber $user.employeeNumber -department $user.department
     }
-    catch { "{0}|{1} " -f $user.userName, $user.employeeNumber  | Out-File -Append -FilePath "C:\scripts\UKG_Sync_Logs\errorlog.txt"
+    catch { "{0}|{1}|{2}" -f $user.userName, $user.employeeNumber, (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")  | Out-File -Append -FilePath "C:\scripts\UKG_Sync_Logs\errorlog.txt"
     }
 }
 
