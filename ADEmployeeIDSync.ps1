@@ -2,14 +2,27 @@
 ## Created by Eric Schroeder and Jarred Hall
 ##9/8/2022
 ##updated 1.20.2023
+##updated by Eric Schroeder 2.13.2023 **Added new secure string password call for SQL DB login portion
 
 
 ## Encrypt SQL Login User Password and set variables
-$password = Get-Content "C:\scripts\Password\Password.txt" | ConvertTo-SecureString 
-$credential = New-Object System.Management.Automation.PsCredential("DWSQLsvc",$password)
+Function Get-SavedCredential([string]$UserName,[string]$KeyPath)
+{
+    If(Test-Path "$($KeyPath)\$($Username).cred") {
+        $SecureString = Get-Content "$($KeyPath)\$($Username).cred" | ConvertTo-SecureString
+        $Credential = New-Object System.Management.Automation.PSCredential -ArgumentList $Username, $SecureString
+    }
+    Else {
+        Throw "Unable to locate a credential for $($Username)"
+    }
+    Return $Credential
+}
+
+$password =  Get-SavedCredential -UserName "DWSQLsvc" -KeyPath "C:\scripts\Password"
+##$credential = New-Object System.Management.Automation.PsCredential("DWSQLsvc",$password)
 
 ##SQL Export of UKG ID's to CSV
-Invoke-Sqlcmd -Query "select *  from dbo.ADUserSync" -ServerInstance "DW-PROD-SQL.truebeck.com" -Database "DW_UKG" -Credential $credential |
+Invoke-Sqlcmd -Query "select *  from dbo.ADUserSync" -ServerInstance "DW-PROD-SQL.truebeck.com" -Database "DW_UKG" -Credential $password |
 Export-Csv -Path "c:\Temp\EmployeeUpload.csv" -NoTypeInformation
 
 ##Attache To Active Directory and add new user information
